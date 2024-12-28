@@ -7,7 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.aaf.fmit.util.ConnectionManager;
-
+/**
+ * Test Comment for git commit.
+ * @param <T>
+ * @param <ID>
+ */
 public abstract class AbstractGenericDAO<T, ID> implements GenericDAO<T, ID> {
 	protected abstract T mapRow(ResultSet rs) throws SQLException;
 
