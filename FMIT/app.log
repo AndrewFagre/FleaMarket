@@ -1,0 +1,2 @@
+23:15:02.387 [main] INFO  com.aaf.fmit.main.Main - This is an informational message.
+23:15:02.388 [main] ERROR com.aaf.fmit.main.Main - This is an error message.
