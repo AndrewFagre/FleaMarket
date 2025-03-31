@@ -1,72 +1,66 @@
-CREATE SCHEMA `flea_market` ;
+drop table `flea_market`.`comment`;
+drop table `flea_market`.`market`;
+drop table `flea_market`.`photo`;
+drop table `flea_market`.`user`;
+drop table `flea_market`.`marketxref`;
+drop table `flea_market`.`item`;
+
+drop schema `flea_market`;
+
+CREATE DATABASE `flea_market`;
+
+CREATE TABLE `flea_market`.`comment` (
+  `commentRefId` int NOT NULL AUTO_INCREMENT,
+  `comment` varchar(90) DEFAULT NULL,
+  PRIMARY KEY (`commentRefId`)
+);
+
+CREATE TABLE `flea_market`.`market` (
+  `marketRefId` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`marketRefId`)
+);
+
+CREATE TABLE `flea_market`.`photo` (
+  `photoRefId` int NOT NULL AUTO_INCREMENT,
+  `photo` MEDIUMBLOB,
+  `itemRefId` int DEFAULT NULL,
+  `commentRefId` int DEFAULT NULL,
+  PRIMARY KEY (`photoRefId`),
+  KEY `itemRefId_idx` (`itemRefId`),
+  KEY `photo_comment_idx` (`commentRefId`)
+);
 
 CREATE TABLE `flea_market`.`user` (
-  `userRefId` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NULL,
-  PRIMARY KEY (`userRefId`));
-  
-  CREATE TABLE `flea_market`.`item` (
-  `itemRefId` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NULL,
-  `description` VARCHAR(90) NULL,
-  `barCode` VARCHAR(45) NULL,
-  `sellerRefId` INT NOT NULL,
-  PRIMARY KEY (`itemRefId`));
-  
-  CREATE TABLE `flea_market`.`photo` (
-  `photoRefId` INT NOT NULL,
-  `photo` BLOB NULL,
-  `itemRefId` INT NULL,
-  PRIMARY KEY (`photoRefId`),
-  INDEX `itemRefId_idx` (`itemRefId` ASC) VISIBLE,
-  CONSTRAINT `itemRefId`
-    FOREIGN KEY (`itemRefId`)
-    REFERENCES `flea_market`.`item` (`itemRefId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
-    
-    CREATE TABLE `flea_market`.`market` (
-  `marketRefId` INT NOT NULL,
-  `name` VARCHAR(45) NULL,
-  PRIMARY KEY (`marketRefId`));
-  
-  CREATE TABLE `flea_market`.`comment` (
-  `commentRefId` INT NOT NULL,
-  `comment` VARCHAR(90) NULL,
-  PRIMARY KEY (`commentRefId`));
-  
-  CREATE TABLE `flea_market`.`commentxref` (
-  `commentXRefId` INT NOT NULL,
-  `commentRefId` INT NOT NULL,
-  `itemRefId` INT NOT NULL,
-  PRIMARY KEY (`commentXRefId`),
-  INDEX `commentRefId_idx` (`commentRefId` ASC) VISIBLE,
-  INDEX `itemRefId_idx` (`itemRefId` ASC) VISIBLE,
-  CONSTRAINT `commentRefId`
-    FOREIGN KEY (`commentRefId`)
-    REFERENCES `flea_market`.`comment` (`commentRefId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `commentItemRefId`
-    FOREIGN KEY (`itemRefId`)
-    REFERENCES `flea_market`.`item` (`itemRefId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
-    
-    CREATE TABLE `flea_market`.`marketxref` (
-  `marketXRefId` INT NOT NULL,
-  `marketRefId` INT NOT NULL,
-  `itemRefId` INT NOT NULL,
+  `userRefId` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) DEFAULT NULL,
+  `commentRefId` int DEFAULT NULL,
+  PRIMARY KEY (`userRefId`),
+  KEY `user_comment_idx` (`commentRefId`)
+);
+
+CREATE TABLE `flea_market`.`marketxref` (
+  `marketXRefId` int NOT NULL AUTO_INCREMENT,
+  `marketRefId` int NOT NULL,
+  `itemRefId` int NOT NULL,
   PRIMARY KEY (`marketXRefId`),
-  INDEX `marketRefId_idx` (`marketRefId` ASC) VISIBLE,
-  INDEX `marketItemRefId_idx` (`itemRefId` ASC) VISIBLE,
-  CONSTRAINT `marketRefId`
-    FOREIGN KEY (`marketRefId`)
-    REFERENCES `flea_market`.`market` (`marketRefId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `marketItemRefId`
-    FOREIGN KEY (`itemRefId`)
-    REFERENCES `flea_market`.`item` (`itemRefId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
+  KEY `marketRefId_idx` (`marketRefId`),
+  KEY `marketItemRefId_idx` (`itemRefId`)
+);
+
+CREATE TABLE `flea_market`.`item` (
+  `itemRefId` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) DEFAULT NULL,
+  `description` varchar(90) DEFAULT NULL,
+  `barCode` varchar(45) DEFAULT NULL,
+  `sellerRefId` int NOT NULL,
+  `commentRefId` int DEFAULT NULL,
+  `boughtDate` date DEFAULT NULL,
+  `soldDate` date DEFAULT NULL,
+  `boughtPrice` double DEFAULT NULL,
+  `soldPrice` double DEFAULT NULL,
+  PRIMARY KEY (`itemRefId`),
+  UNIQUE KEY `barCode_UNIQUE` (`barCode`),
+  KEY `item_seller_idx` (`sellerRefId`),
+  KEY `item_comment_idx` (`commentRefId`)
+);

@@ -4,7 +4,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class UserDAO extends AbstractGenericDAO<UserDO, Integer> {
+	
+	private static final Logger logger = LogManager.getLogger(UserDAO.class);
 	
 	@Override
 	protected UserDO mapRow(ResultSet rs) throws SQLException {
@@ -21,23 +26,28 @@ public class UserDAO extends AbstractGenericDAO<UserDO, Integer> {
 
 	@Override
 	protected String getInsertQuery() {
-		return "INSERT INTO user (userRefId, name) VALUES (?, ?)";
+		return "INSERT INTO user (name) VALUES (?)";
 	}
 
 	@Override
 	protected String getUpdateQuery() {
-		return "UPDATE users SET userRefId = ?, name = ? WHERE id = ?";
+		return "UPDATE user SET name = ? WHERE userRefId = ?";
 	}
 
 	@Override
 	protected void setInsertParameters(PreparedStatement ps, UserDO user) throws SQLException {
-		ps.setInt(1, user.getUserRefId());
-		ps.setString(2, user.getName());
+		ps.setString(1, user.getName());
 	}
 
 	@Override
 	protected void setUpdateParameters(PreparedStatement ps, UserDO user) throws SQLException {
-		ps.setInt(1, user.getUserRefId());
-		ps.setString(2, user.getName());
+		ps.setString(1, user.getName());
+		ps.setInt(2, user.getUserRefId());
+	}
+
+	@Override
+	protected String getRefIdName() {
+		logger.trace("running getRefIdName...");
+		return "userRefId";
 	}
 }

@@ -9,7 +9,15 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/**
+ * @author Chris McDermit
+ */
 public final class ConnectionManager {
+
+	private static final Logger logger = LogManager.getLogger(ConnectionManager.class);
 
 	private ConnectionManager() {}
 		
@@ -23,32 +31,69 @@ public final class ConnectionManager {
 	private static BlockingQueue<Connection> pool;
 	private static List<Connection> sourceConnections;
 	
+	/**
+	 * static initializer 
+	 */
 	static {
 		loadDriver();
 		initConnectionPool();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+	        shutdown();
+	    }));
+
 	}
 	
+	/**
+	 * attains the connection from the pool
+	 * 
+	 * @return a connection
+	 */
 	public static Connection get() {
 		try {
-			return pool.take();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		
+	        Connection connection = pool.take(); // waits indefinitely (not ideal tbh)
+//			if waiting becomes too frequent and long, try the statement below instead	        
+//	        Connection connection = pool.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+	        logger.trace("Connection borrowed: ", connection);
+	        return connection;
+	    } catch (InterruptedException e) {
+	        throw new RuntimeException(e);
+	    }
 	}
 	
-	public static void closeConnectionPool() {
-		try {
-			for (Connection sourceConnection : sourceConnections) {
-				sourceConnection.close();
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+	/**
+	 * returns a connection back to the pool
+	 * 
+	 * @param connection
+	 */
+	public static void release(Connection connection) {
+	    try {
+	        pool.put(connection);
+	        logger.trace("released a connection", connection);
+	    } catch (InterruptedException e) {
+	        throw new RuntimeException(e);
+	    }
 	}
 
+	
+	/**
+	 * closes the connections
+	 */
+	public static void shutdown() {
+	    for (Connection connection : sourceConnections) {
+	        try {
+	            if (connection != null && !connection.isClosed()) {
+	                connection.close();
+	            }
+	        } catch (SQLException e) {
+	        	logger.error("Error closing connection: " + e.getMessage(), connection);
+	        }
+	    }
+	}
+
+	/**
+	 * loads the assigned driver
+	 */
 	private static void loadDriver() {
-		
 		try {
 			Class.forName(PropertiesUtil.get(DRIVER_KEY));
 		} catch (ClassNotFoundException e) {
@@ -56,7 +101,11 @@ public final class ConnectionManager {
 		}
 	}
 	
+	/**
+	 * does the initiation
+	 */
 	private static void initConnectionPool() {
+		logger.trace("initiating the connection pool");
 		String poolSize = PropertiesUtil.get(POOL_SIZE_KEY);
 		Integer size = poolSize == null ? DEFAULT_POOL_SIZE : Integer.parseInt(poolSize); 
 		pool = new ArrayBlockingQueue<Connection>(size);
@@ -72,13 +121,21 @@ public final class ConnectionManager {
 		}
 	}
 
+	/**
+	 * gets a connection
+	 * 
+	 * @return the newly created connection
+	 */
 	private static Connection open() {
+		Connection connection = null;
 		try {
-			return DriverManager.getConnection(PropertiesUtil.get(URL_KEY),
+			connection = DriverManager.getConnection(PropertiesUtil.get(URL_KEY),
 					PropertiesUtil.get(USERNAME_KEY),
 					PropertiesUtil.get(PASSWORD_KEY));
+			logger.trace("opening a new connection", connection);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+		return connection;
 	}
 }

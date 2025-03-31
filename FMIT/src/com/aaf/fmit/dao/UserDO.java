@@ -1,8 +1,10 @@
 package com.aaf.fmit.dao;
 
 public class UserDO {
+	
 	private Integer userRefId;
 	private String name;
+	private CommentDO comment;
 	
 	public UserDO() {}
 
@@ -50,6 +52,24 @@ public class UserDO {
 	 */
 	public final void setName(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * Returns the comment of UserDO.
+	 *
+	 * @return the comment
+	 */
+	public CommentDO getComment() {
+		return comment;
+	}
+
+	/**
+	 * Sets the comment to value passed in. 
+	 *
+	 * @param comment the comment to set
+	 */
+	public void setComment(CommentDO comment) {
+		this.comment = comment;
 	}
 
 	@Override
